@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settlement Clicker</title>
+<style>
+:root{--bg:#17130f;--panel:#282019;--panel2:#34291f;--edge:#594532;--cream:#f6e8c9;--muted:#c1ad8d;--gold:#e9b94f;--green:#78bd75;--red:#b96c58}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#59432b,#17130f 60%);color:var(--cream);font-family:Arial,Helvetica,sans-serif}
+header{height:auto;padding:14px 22px;background:#211910;border-bottom:2px solid #6b4c2b;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}.brand-mark{font-size:29px}.brand h1{font-family:Georgia,serif;font-size:22px;margin:0;color:#f5d58d}.brand small{color:var(--muted);font-size:11px}
+button{font:inherit;cursor:pointer;border:1px solid #86663d;border-radius:7px;color:#2a1b0c;background:linear-gradient(#f4d17e,#d99d3c);font-weight:800;padding:9px 12px;box-shadow:0 3px 0 #785326}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #785326}button:disabled{filter:grayscale(1);opacity:.45;cursor:not-allowed}
+header button{font-size:12px}
+main{max-width:1400px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px}
+.left{min-width:0}.right{min-width:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat,.panel{background:linear-gradient(145deg,#34281d,#241b14);border:1px solid var(--edge);border-radius:9px;box-shadow:0 4px 12px #0005}
+.stat{padding:10px 12px}.stat label{display:block;color:#bca47e;font-size:10px;font-weight:bold;letter-spacing:1px}.stat strong{display:block;color:#f6d58e;font: bold 21px Georgia,serif;margin-top:5px}.stat small{color:var(--muted);font-size:10px}
+.panel{padding:13px;margin-bottom:12px}.panel h2{font: bold 16px Georgia,serif;color:#f2d18b;margin:0 0 10px}
+.playarea{display:grid;grid-template-columns:minmax(240px,.85fr) minmax(300px,1.15fr);gap:12px}
+.click-panel{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;background:radial-gradient(circle,#49341f,#241a12 70%)}
+#bigClick{width:210px;height:210px;border-radius:50%;font-size:72px;border:8px solid #8a6335;background:radial-gradient(circle at 35% 25%,#f9df9c,#d49b45 65%,#9d672c);box-shadow:0 9px 0 #704821,0 12px 28px #0009;transition:transform .08s;display:grid;place-items:center}
+#bigClick:active{transform:scale(.96) translateY(5px);box-shadow:0 3px 0 #704821}
+.click-panel .hint{font-size:12px;color:var(--muted);margin:18px 0 5px}.click-panel .power{font-size:13px;color:#f6d58e;font-weight:bold}
+#floatLayer{position:relative;height:0;width:100%}.float{position:absolute;left:50%;top:-210px;color:#fff1a8;font-weight:bold;font-size:20px;animation:floatup .85s ease-out forwards;pointer-events:none;text-shadow:0 2px 4px #000}
+@keyframes floatup{to{transform:translateY(-85px);opacity:0}}
+#map{position:relative;height:420px;border:5px solid #725637;border-radius:8px;overflow:hidden;background:
+ radial-gradient(ellipse at 18% 20%,#a6a875 0 12%,transparent 28%),
+ radial-gradient(ellipse at 78% 75%,#b0a879 0 13%,transparent 30%),
+ radial-gradient(ellipse at 53% 40%,#87996a 0 18%,transparent 42%),
+ linear-gradient(135deg,#657d55,#9a9b68 48%,#778b5c);box-shadow:inset 0 0 35px #283b25a6}
+.map-grid{position:absolute;inset:0;opacity:.14;background-image:radial-gradient(#e6dfb4 1px,transparent 1px);background-size:19px 19px}
+.road{position:absolute;z-index:1;background:#d8c9a5;border:2px solid #a59470;box-shadow:0 0 0 2px #63734e66}
+.road.main-a{width:125%;height:25px;left:-10%;top:47%;transform:rotate(-13deg);border-radius:30px}
+.road.main-b{width:115%;height:19px;left:-7%;top:48%;transform:rotate(33deg);border-radius:30px}
+.road.branch-a{width:72%;height:12px;left:15%;top:22%;transform:rotate(13deg);border-radius:20px}
+.road.branch-b{width:66%;height:12px;left:29%;top:72%;transform:rotate(-24deg);border-radius:20px}
+.road.branch-c{width:11px;height:75%;left:73%;top:12%;transform:rotate(5deg);border-radius:20px}
+.road.branch-d{width:11px;height:62%;left:25%;top:17%;transform:rotate(-8deg);border-radius:20px}
+.map-roundabout{position:absolute;width:60px;height:60px;border:8px solid #d8c9a5;border-radius:50%;background:#879965;left:47%;top:40%;z-index:2;box-shadow:0 0 0 2px #a59470}
+.map-buildings{position:absolute;inset:0;z-index:4}
+.map-building{position:absolute;transform:translate(-50%,-50%);font-size:21px;line-height:1;text-shadow:0 1px 2px #24301b;filter:drop-shadow(0 2px 1px #24301b88);user-select:none}
+.map-building.big{font-size:27px}
+.map-building small{position:absolute;top:-8px;right:-10px;background:#30271c;color:#fff2cf;border:1px solid #d3b16c;border-radius:8px;font: bold 8px Arial;padding:2px 4px}
+.map-label{position:absolute;z-index:5;color:#f7efcf;background:#283a27bd;border:1px solid #d1c18b;border-radius:4px;padding:3px 6px;font:bold 9px Arial;letter-spacing:.5px}
+.map-label.north{top:8px;left:8px}.map-label.south{bottom:8px;right:8px}
+.map-caption{font-size:10px;color:#cbb995;margin-top:6px}
+.progress{height:9px;background:#140f0b;border-radius:9px;overflow:hidden;margin:8px 0}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#6dbb72,#efc35e)}
+.milestone{font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:9px}.tabs button{font-size:10px;padding:7px 8px;background:#55402a;color:#f4e5c8;border-color:#80603a;box-shadow:none}.tabs button.active{background:#e9b94f;color:#2a1b0c}
+.shoplist{max-height:520px;overflow:auto;padding-right:3px}
+.item{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid #5b4631;border-radius:7px;padding:8px;margin:6px 0}
+.item .ico{font-size:23px;width:29px;text-align:center}.item .desc{flex:1;min-width:0}.item strong{font-size:12px;display:block}.item small{font-size:10px;color:var(--muted);display:block;margin-top:3px}.item .price{font-size:10px;color:#f0c86d;margin-top:3px}.item button{font-size:10px;padding:7px 9px;white-space:nowrap}
+.grant{border:1px solid #446d46;background:linear-gradient(135deg,#273c27,#1f2c20);padding:12px;border-radius:8px}
+.grant h3{margin:0 0 5px;color:#b6e6a9;font: bold 15px Georgia,serif}.grant p{font-size:11px;color:#d1ddc7;line-height:1.45;margin:5px 0}
+.grant button{width:100%;margin-top:8px;background:linear-gradient(#e7e2d4,#bdb6a4);border-color:#d6cfbd;box-shadow:0 3px 0 #777064}
+.grant button.ready{background:linear-gradient(#d2f1a9,#83c76d);border-color:#a4d78d;box-shadow:0 3px 0 #4d8040}
+#grantStatus{font-size:10px;color:#c6d8bb;margin-top:7px}
+.govgrant{border:1px solid #7b6337;background:linear-gradient(135deg,#40351f,#292318);padding:12px;border-radius:8px;margin-top:10px}
+.govgrant h3{margin:0 0 5px;color:#f0d18a;font:bold 15px Georgia,serif}
+.govgrant p{font-size:11px;color:#e1d5bd;line-height:1.45;margin:5px 0}
+#govGrantStatus{font-size:10px;color:#e8d7ae;margin-top:7px}
+.achievement{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #594532;padding:7px 0;font-size:11px}.achievement span:last-child{color:#e9c16d}
+#feed{max-height:130px;overflow:auto;color:#c8b99e;font-size:10px}#feed p{margin:6px 0;border-bottom:1px solid #493725;padding-bottom:5px}
+footer{text-align:center;color:#917f63;font-size:10px;padding:8px 15px 18px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}.confetti-piece{position:absolute;top:-20px;width:9px;height:14px;animation:fall 2.7s linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(800deg);opacity:.1}}
+@media(max-width:900px){main{grid-template-columns:1fr}.right{display:grid;grid-template-columns:1fr 1fr;gap:10px}.right .panel{margin:0}.shop-panel{grid-row:span 2}}
+@media(max-width:650px){#map{height:360px}.playarea{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.right{display:block}.right .panel{margin-bottom:12px}#bigClick{width:175px;height:175px;font-size:60px}#map{height:290px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><span class="brand-mark">🏘️</span><div><h1>Settlement Clicker</h1><small>Build • Expand • Develop</small></div></div>
+ <div><button id="save">SAVE GAME</button> <button id="reset">RESET</button></div>
+</header>
+<main>
+ <section class="left">
+  <div class="stats">
+   <div class="stat"><label>TREASURY</label><strong id="money">₪250</strong><small id="income">₪0 per second</small></div>
+   <div class="stat"><label>POPULATION</label><strong id="population">0</strong><small>Residents</small></div>
+   <div class="stat"><label>DEVELOPMENT LEVEL</label><strong id="level">1</strong><small id="levelName">Small community</small></div>
+   <div class="stat"><label>BUILDINGS</label><strong id="total">0</strong><small id="clickPower">₪10 per click</small></div>
+  </div>
+  <div class="playarea">
+   <div class="panel click-panel">
+    <h2>Construction headquarters</h2>
+    <button id="bigClick" aria-label="Build">🏗️</button>
+    <div id="floatLayer"></div>
+    <div class="hint">CLICK TO GENERATE DEVELOPMENT FUNDS</div>
+    <div class="power" id="powerText">Each click earns ₪10</div>
+    <div class="progress" style="width:85%"><span id="levelBar"></span></div>
+    <div class="milestone" id="levelProgress">Next level: 100 residents</div>
+   </div>
+   <div class="panel">
+    <h2>Settlement masterplan</h2>
+    <div id="map">
+     <div class="map-grid"></div>
+     <div class="road main-a"></div><div class="road main-b"></div>
+     <div class="road branch-a"></div><div class="road branch-b"></div>
+     <div class="road branch-c"></div><div class="road branch-d"></div>
+     <div class="map-roundabout"></div>
+     <div class="map-label north">SETTLEMENT OVERVIEW</div>
+     <div class="map-label south">LIVE DEVELOPMENT MAP</div>
+     <div class="map-buildings" id="mapBuildings"></div>
+    </div>
+    <div class="map-caption">Conceptual aerial-style map · Buildings fill in organically as development grows; icons represent building types.</div>
+   </div>
+  </div>
+  <div class="panel">
+   <h2>Palestinian humanitarian housing support</h2>
+   <div class="grant">
+    <h3>🇵🇸 Humanitarian housing support</h3>
+    <p>Build 15 houses to unlock a fictional ₪1,000,000 humanitarian grant for voluntary housing assistance and community rebuilding.</p>
+    <button id="aidButton" disabled>🇵🇸 SUPPORT HUMANITARIAN HOUSING</button>
+    <div id="grantStatus">Build 15 houses to unlock this grant.</div>
+   </div>
+   <div class="govgrant">
+    <h3>🇮🇱 Israeli government development funding</h3>
+    <p>Receive an automatic fictional government grant for every 15 buildings constructed. Grant types rotate, and funding increases by 25% after each five grants.</p>
+    <div id="govGrantStatus">Next government grant in: 15 buildings.</div>
+   </div>
+  </div>
+ </section>
+ <aside class="right">
+  <div class="panel shop-panel">
+   <h2>🛒 Construction shop</h2>
+   <div class="tabs" id="tabs">
+    <button class="active" data-tab="all">ALL</button><button data-tab="residential">HOMES</button><button data-tab="commercial">BUSINESS</button><button data-tab="infrastructure">INFRA</button><button data-tab="public">PUBLIC</button>
+   </div>
+   <div class="shoplist" id="shop"></div>
+  </div>
+  <div class="panel"><h2>⚙️ Upgrades</h2><div id="upgrades"></div></div>
+  <div class="panel"><h2>🏆 Achievements</h2><div id="achievements"></div></div>
+  <div class="panel"><h2>📜 Development news</h2><div id="feed">Your development story begins.</div></div>
+ </aside>
+</main>
+<footer>Fictional city-building game. Grants and development events are invented gameplay mechanics, not real-world government allocations.</footer>
+<div id="confetti"></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=n=>{if(n>=1e12)return '₪'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return '₪'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return '₪'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return '₪'+(n/1e3).toFixed(1)+'K';return '₪'+Math.floor(n).toLocaleString()};
+const buildings=[
+['house','Houses','🏠','residential',100,1,8,1],['shops','Local shops','🏪','commercial',450,8,2,1],['roads','Roads','🛣️','infrastructure',700,4,0,1],
+['apartments','Apartment blocks','🏢','residential',1800,20,55,2],['supermarket','Supermarkets','🛒','commercial',3500,48,8,2],['electricity','Electricity networks','⚡','infrastructure',5000,55,0,2],['school','Schools','🏫','public',6500,32,12,2],
+['luxury','Luxury apartments','🏙️','residential',18000,185,130,3],['mall','Shopping malls','🏬','commercial',28000,340,40,3],['water','Water systems','💧','infrastructure',36000,260,0,3],['park','Parks','🌳','public',42000,220,4,3],
+['offices','Office buildings','🏢','commercial',90000,1150,35,4],['highway','Highways','🚧','infrastructure',125000,1450,0,4],['hospital','Hospitals','🏥','public',160000,900,24,4],
+['hotel','Hotels','🏨','commercial',300000,3600,55,5],['rail','Railway stations','🚉','infrastructure',420000,4800,0,5],['university','Universities','🎓','public',550000,5100,100,5],
+['neighborhood','Residential neighborhoods','🏘️','residential',850000,7800,650,5],['comms','Communications','📡','infrastructure',1500000,14500,0,6],['recreation','Recreation centers','🎡','public',2200000,21000,180,6],['metro','Metropolitan business district','🌆','commercial',6500000,72000,900,7]
+].map(a=>({id:a[0],name:a[1],icon:a[2],cat:a[3],cost:a[4],income:a[5],pop:a[6],level:a[7]}));
+const upgrades=[
+['planner','Planning office','📐',250,5],['permits','Streamlined permits','📋',1200,10],['engineers','Engineering team','👷',8500,25],['incentives','Business incentives','💼',24000,50],['automation','Automated construction','🏗️',75000,100],['efficiency','Energy efficiency','🔋',220000,250],['innovation','Innovation district','💡',1100000,750],['directorate','Major projects directorate','🏛️',5000000,2000]
+].map(a=>({id:a[0],name:a[1],icon:a[2],cost:a[3],bonus:a[4]}));
+const levels=['Small community','Residential neighborhood','Town center','Commercial district','Regional town','Major city','Metropolitan development'];
+const thresholds=[0,100,400,1000,2500,6000,15000];
+let s={money:250,pop:0,counts:{},owned:[],click:10,totalBuilt:0,level:1,feed:[],aidClaims:0,grantLog:[],govGrantCount:0};
+let tab='all';
+function income(){return buildings.reduce((v,b)=>v+(s.counts[b.id]||0)*b.income,0)}
+function total(){return Object.values(s.counts).reduce((a,b)=>a+b,0)}
+function log(t){s.feed.unshift(t);s.feed=s.feed.slice(0,12);$('feed').innerHTML=s.feed.map(x=>'<p>• '+x+'</p>').join('')}
+function toast(t){const n=document.createElement('div');n.textContent=t;n.style.cssText='position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#34291f;border:1px solid #e9b94f;color:#ffe5a4;padding:12px 18px;border-radius:8px;z-index:120;box-shadow:0 4px 20px #0008;font-weight:bold';document.body.appendChild(n);setTimeout(()=>n.remove(),2300)}
+function clickMoney(){s.money+=s.click;const f=document.createElement('div');f.className='float';f.textContent='+'+fmt(s.click);$('floatLayer').appendChild(f);setTimeout(()=>f.remove(),900);render()}
+function build(id){const b=buildings.find(x=>x.id===id);if(!b)return;const n=s.counts[id]||0,cost=Math.floor(b.cost*Math.pow(1.16,n));if(s.money<cost||s.level<b.level)return;s.money-=cost;s.counts[id]=n+1;s.pop+=b.pop;s.totalBuilt=total();log('Built '+b.name+'.');levelCheck();checkGovernmentGrant();render();save(false)}
+function upgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||s.owned.includes(id)||s.money<u.cost)return;s.money-=u.cost;s.click+=u.bonus;s.owned.push(id);log('Purchased '+u.name+'.');toast('Upgrade purchased: '+u.name);render();save(false)}
+function levelCheck(){const old=s.level;for(let i=0;i<thresholds.length;i++)if(s.pop>=thresholds[i])s.level=i+1;if(s.level>old){log('Milestone reached: '+levels[s.level-1]+'!');toast('New level: '+levels[s.level-1])}}
+function tileMap(){
+ const layer=$('mapBuildings');layer.innerHTML='';
+ // Each building gets a stable, organically scattered position. Roads stay visible,
+ // while the settlement grows outward from the central street network.
+ const spots=[];
+ let seed=24681357;
+ function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+ for(let y=0;y<10;y++)for(let x=0;x<15;x++){
+  let px=5+x*6.35+(rand()-.5)*3.4, py=8+y*9.1+(rand()-.5)*4.8;
+  // Leave gaps along the main diagonal streets and branch roads.
+  const d1=Math.abs(py-(47-(px-10)*.205));
+  const d2=Math.abs(py-(16+(px-10)*.37));
+  const d3=Math.abs(py-(22+(px-15)*.13));
+  const d4=Math.abs(py-(82-(px-29)*.36));
+  if(d1<4.5||d2<4||d3<2.8||d4<2.8)continue;
+  spots.push([px,py]);
+ }
+ let entries=[];
+ buildings.forEach(b=>{
+  const count=s.counts[b.id]||0;
+  // Display individual buildings up to a sensible cap, then a grouped icon.
+  const shown=Math.min(count,24);
+  for(let i=0;i<shown;i++)entries.push({b,index:i,total:count});
+ });
+ // Interleave building types so new districts blend together rather than form blocks.
+ entries.sort((a,b)=>((a.index*7+buildings.indexOf(a.b)*3)%17)-((b.index*7+buildings.indexOf(b.b)*3)%17));
+ entries.slice(0,spots.length).forEach((entry,i)=>{
+  const [x,y]=spots[i],node=document.createElement('span');
+  node.className='map-building'+(['hospital','university','mall','metro','neighborhood'].includes(entry.b.id)?' big':'');
+  node.textContent=entry.b.icon;node.title=entry.b.name+' · '+entry.total+' owned';
+  node.style.left=x+'%';node.style.top=y+'%';
+  if(entry.index===0&&entry.total>1){const badge=document.createElement('small');badge.textContent='×'+entry.total;node.appendChild(badge)}
+  layer.appendChild(node);
+ });
+ if(entries.length>spots.length){
+  const extra=document.createElement('span');extra.className='map-building big';
+  extra.style.left='91%';extra.style.top='89%';extra.textContent='➕';
+  extra.title=(entries.length-spots.length)+' additional buildings not individually shown';layer.appendChild(extra);
+ }
+}
+function renderShop(){$('shop').innerHTML='';const list=buildings.filter(b=>(tab==='all'||b.cat===tab)&&b.level<=s.level);list.forEach(b=>{const n=s.counts[b.id]||0,c=Math.floor(b.cost*Math.pow(1.16,n));const d=document.createElement('div');d.className='item';d.innerHTML='<span class="ico">'+b.icon+'</span><div class="desc"><strong>'+b.name+' ×'+n+'</strong><small>+'+fmt(b.income)+'/sec · +'+b.pop+' residents</small><div class="price">'+fmt(c)+'</div></div><button '+(s.money<c?'disabled':'')+'>BUILD</button>';d.querySelector('button').addEventListener('click',()=>build(b.id));$('shop').appendChild(d)})}
+function renderUpgrades(){$('upgrades').innerHTML='';upgrades.forEach(u=>{let owned=s.owned.includes(u.id);const d=document.createElement('div');d.className='item';d.innerHTML='<span class="ico">'+u.icon+'</span><div class="desc"><strong>'+u.name+'</strong><small>+'+fmt(u.bonus)+' per click</small><div class="price">'+(owned?'PURCHASED':fmt(u.cost))+'</div></div><button '+(owned||s.money<u.cost?'disabled':'')+'>'+(owned?'OWNED':'BUY')+'</button>';d.querySelector('button').addEventListener('click',()=>upgrade(u.id));$('upgrades').appendChild(d)})}
+function confetti(){const root=$('confetti');for(let i=0;i<110;i++){const p=document.createElement('i');p.className='confetti-piece';p.style.left=Math.random()*100+'%';p.style.background=['#e9b94f','#6ebc78','#f3e4bd','#6aa8d8','#d77a68'][i%5];p.style.animationDelay=Math.random()*.7+'s';p.style.transform='rotate('+Math.random()*360+'deg)';root.appendChild(p);setTimeout(()=>p.remove(),3400)}}
+function claimAid(){const houses=s.counts.house||0;if(houses<(s.aidClaims+1)*15)return;s.money+=1000000;s.aidClaims++;s.grantLog.unshift('🇵🇸 Humanitarian housing grant +₪1,000,000');s.grantLog=s.grantLog.slice(0,8);log('Humanitarian housing support grant received: ₪1,000,000.');confetti();toast('🇵🇸 Humanitarian grant awarded: +₪1,000,000');render();save(false)}
+function renderAid(){const houses=s.counts.house||0;const remaining=Math.max(0,(s.aidClaims+1)*15-houses);const b=$('aidButton');const ready=remaining===0;b.disabled=!ready;b.classList.toggle('ready',ready);b.textContent=ready?'🇵🇸 CLAIM ₪1,000,000 GRANT':'🇵🇸 SUPPORT HUMANITARIAN HOUSING';$('grantStatus').textContent=ready?'15-house milestone reached! Claim your fictional grant.':'Build '+remaining+' more house'+(remaining===1?'':'s')+' to unlock the next grant.'}
+const governmentGrants=[['Development grant',2000000],['Infrastructure grant',5000000],['Education grant',1000000],['Healthcare grant',1500000],['Housing subsidy',1250000]];
+function checkGovernmentGrant(){if(s.totalBuilt===0||s.totalBuilt%15!==0)return;const index=s.govGrantCount%governmentGrants.length;const item=governmentGrants[index];const multiplier=1+Math.floor(s.govGrantCount/5)*0.25;const amount=Math.round(item[1]*multiplier);s.money+=amount;s.govGrantCount++;const message='🇮🇱 '+item[0]+' +'+fmt(amount);s.grantLog.unshift(message);s.grantLog=s.grantLog.slice(0,8);log('Israeli government funding received: '+item[0]+' — '+fmt(amount)+'.');toast('🇮🇱 Government grant: +'+fmt(amount));}
+function renderGovernmentGrant(){const remaining=15-(s.totalBuilt%15);$('govGrantStatus').textContent='Next government grant in: '+remaining+' building'+(remaining===1?'':'s')+'. Grants received: '+s.govGrantCount+'.';}
+const awards=[['First steps',1,'Construct your first building'],['Growing community',10,'Construct 10 buildings'],['Big builder',50,'Construct 50 buildings'],['City planner',100,'Construct 100 buildings'],['Humanitarian partner',1,'Claim a humanitarian grant']];
+function renderAwards(){const n=total();$('achievements').innerHTML=awards.map(a=>{let done=a[0]==='Humanitarian partner'?s.aidClaims>=a[1]:n>=a[1];return '<div class="achievement"><span>'+(done?'🏆':'🔒')+' '+a[0]+'</span><span>'+(done?'UNLOCKED':a[2])+'</span></div>'}).join('')}
+function render(){s.totalBuilt=total();$('money').textContent=fmt(s.money);$('income').textContent=fmt(income())+' per second';$('population').textContent=s.pop.toLocaleString();$('level').textContent=s.level;$('levelName').textContent=levels[s.level-1];$('total').textContent=s.totalBuilt.toLocaleString();$('clickPower').textContent=fmt(s.click)+' per click';$('powerText').textContent='Each click earns '+fmt(s.click);const next=thresholds[s.level];let pct=s.level>=7?100:Math.min(100,s.pop/next*100);$('levelBar').style.width=pct+'%';$('levelProgress').textContent=s.level>=7?'Maximum level reached':Math.floor(pct)+'% · '+Math.max(0,next-s.pop)+' residents to '+levels[s.level];renderShop();renderUpgrades();renderAid();renderGovernmentGrant();renderAwards();tileMap()}
+function save(show=true){try{localStorage.setItem('settlementClickerCookieStyle',JSON.stringify(s));if(show)toast('Game saved!')}catch(e){if(show)toast('Browser save unavailable')}}
+function load(){try{const x=JSON.parse(localStorage.getItem('settlementClickerCookieStyle')||'null');if(x)s={...s,...x,counts:x.counts||{},owned:x.owned||[],feed:x.feed||[],grantLog:x.grantLog||[],govGrantCount:x.govGrantCount||0}}catch(e){}}
+$('bigClick').addEventListener('click',clickMoney);$('save').addEventListener('click',()=>save(true));$('reset').addEventListener('click',()=>{if(confirm('Reset all progress?')){localStorage.removeItem('settlementClickerCookieStyle');location.reload()}});$('aidButton').addEventListener('click',claimAid);
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;$('tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderShop()});
+load();s.totalBuilt=total();levelCheck();render();$('feed').innerHTML=s.feed.length?s.feed.map(x=>'<p>• '+x+'</p>').join(''):'Your development story begins.';
+setInterval(()=>{s.money+=income();render()},1000);setInterval(()=>save(false),10000);
+window.addEventListener('beforeunload',()=>save(false));
+</script>
+</body>
+</html>
